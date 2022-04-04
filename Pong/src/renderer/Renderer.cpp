@@ -2,24 +2,34 @@
 
 #include <renderer/Renderer.h>
 
+int Renderer::ScreenWidth() { return currentScreenWidth; }
+int Renderer::ScreenHeight() { return currentScreenHeight; }
+
 bool Renderer::Init(const char* const windowName, int screenWidth, int screenHeight, int screenDepth)
 {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	{
 		fprintf(stderr, "SDL video init failed: %s\n", SDL_GetError());
 		return false;
 	}
 
 	window = SDL_CreateWindow(windowName,
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		screenWidth, screenHeight, SDL_WINDOW_SHOWN);
+		screenWidth, screenHeight, 0);
 	if (!window)
 	{
 		fprintf(stderr, "Window could not be created: %s\n", SDL_GetError());
 		return false;
 	}
+	currentScreenWidth = screenWidth;
+	currentScreenHeight = screenHeight;
 
-	surface = SDL_GetWindowSurface(window);
-	pixels = SDL_CreateRGBSurfaceWithFormat(0, screenWidth, screenHeight, screenDepth, SDL_PIXELFORMAT_RGBA8888);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	if (!renderer)
+	{
+		fprintf(stderr, "Renderer could not be created: %s\n", SDL_GetError());
+		return false;
+	}
 
 	ticks = SDL_GetTicks64();
 
@@ -35,18 +45,15 @@ bool Renderer::Render(double delta)
 	if (!running)
 		return running;
 
-	const SDL_PixelFormat* pfmt = pixels->format;
-
-	// clear pixels
-	SDL_FillRect(pixels, nullptr, SDL_MapRGBA(pfmt, 0, 0, 0, 255));
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+	SDL_RenderClear(renderer);
 
 	// call each GameObject draw (yes this is extremely simple, no depth-ordering)
 	for (auto i = 0; i < goRenderSize; i++)
 		goRenderList[i]->Draw(*this);
 
-	// copy to window
-	SDL_UpperBlitScaled(pixels, nullptr, surface, nullptr);
-	SDL_UpdateWindowSurface(window);
+	// flip window, functions as the frame buffer
+	SDL_RenderPresent(renderer);
 
 	return running;
 }
@@ -84,6 +91,7 @@ void Renderer::Quit()
 {
 	delete[] goRenderList;
 
+	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 }

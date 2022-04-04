@@ -7,6 +7,7 @@
 #include <engine/GOManager.h>
 #include <engine/Input.h>
 #include <util/Log.h>
+#include <util/SDLPrimitives.h>
 
 class OkuLite
 {

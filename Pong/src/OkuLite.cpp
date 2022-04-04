@@ -1,4 +1,5 @@
 #include <OkuLite.h>
+#include <string>
 
 std::unique_ptr<Renderer> OkuLite::renderer = nullptr;
 std::unique_ptr<GOManager> OkuLite::goManager = nullptr;

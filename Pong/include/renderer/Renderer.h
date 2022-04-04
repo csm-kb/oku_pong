@@ -6,10 +6,6 @@
 
 #include <engine/GameObject.h>
 
-#define DEFAULT_SCREEN_WIDTH  1280
-#define DEFAULT_SCREEN_HEIGHT 720
-#define DEFAULT_SCREEN_DEPTH  32
-
 class GameObject;
 
 /// <summary>
@@ -21,8 +17,10 @@ class Renderer
 {
 public:
 	SDL_Window* window;
-	SDL_Surface* surface;
-	SDL_Surface* pixels;
+	//SDL_Surface* surface;
+	//SDL_Surface* pixels;
+	SDL_Renderer* renderer;
+
 	/// <summary>
 	/// Whether the renderer is running at the moment.
 	/// </summary>
@@ -31,6 +29,16 @@ public:
 	/// The total number of milliseconds that have passed since the game started (from <see cref="SDL_GetTicks64"/>).
 	/// </summary>
 	Uint64 ticks;
+
+	/// <summary>
+	/// Returns the current screen width in pixels.
+	/// </summary>
+	int ScreenWidth();
+
+	/// <summary>
+	/// Returns the current screen height in pixels.
+	/// </summary>
+	int ScreenHeight();
 
 	/**
  * \brief Initializes a renderer object.
@@ -41,9 +49,9 @@ public:
 	/// </summary>
 	/// <returns>Whether it was successful.</returns>
 	bool Init(const char* const windowName,
-		int screenWidth = DEFAULT_SCREEN_WIDTH,
-		int screenHeight = DEFAULT_SCREEN_HEIGHT,
-		int screenDepth = DEFAULT_SCREEN_DEPTH);
+		int screenWidth = 1280,
+		int screenHeight = 720,
+		int screenDepth = 32);
 	/**
 	 * \brief Tells the renderer to render this frame.
 	 */
@@ -71,6 +79,7 @@ public:
 	void Quit();
 
 private:
+	int currentScreenWidth, currentScreenHeight;
 	size_t goRenderSize;
 	size_t goRenderMax;
 	GameObject_Ptr* goRenderList;

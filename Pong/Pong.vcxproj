@@ -154,6 +154,7 @@
     <ClCompile Include="src\engine\GOManager.cpp" />
     <ClCompile Include="src\engine\Input.cpp" />
     <ClCompile Include="src\renderer\Renderer.cpp" />
+    <ClCompile Include="src\util\SDLPrimitives.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

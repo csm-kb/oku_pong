@@ -7,9 +7,14 @@ class SDLPrimitive
 {
 public:
 	/// <summary>
-	/// Draws a colored circle to the given SDL surface at the specified location and radius.
+	/// Draws a hollow colored circle at the specified location and radius.
 	/// </summary>
-	static void FillCircle(SDL_Surface* surface, int x, int y, int radius, Uint32 color);
+	static void DrawCircle(Renderer& renderer, int x, int y, int radius, Uint32 color);
+
+	/// <summary>
+	/// Draws a filled colored circle at the specified location and radius.
+	/// </summary>
+	static void FillCircle(Renderer& renderer, int x, int y, int radius, Uint32 color);
 };
 
 #endif//SDLPrimitives_H
