@@ -19,32 +19,29 @@ public:
 
 	void Draw(Renderer& renderer) override
 	{
-		// write pixels
-		SDL_LockSurface(renderer.pixels);
+		// draw diagonal line
+		for (int i = 0; i < OkuLite::renderer->ScreenHeight(); i++)
 		{
-			const int pitch = renderer.pixels->pitch;
-
-			// draw diagonal line
-			for (int i = 0; i < DEFAULT_SCREEN_HEIGHT; i++)
+			const int y = i;
+			for (int j = 0; j < 8; j++)
 			{
-				const int y = i;
-				for (int j = 0; j < 8; j++)
-				{
-					const int x = (static_cast<int>(pos) + i+j) % DEFAULT_SCREEN_WIDTH;
+				const int x = (static_cast<int>(pos) + i+j) % OkuLite::renderer->ScreenWidth();
 
-					const auto row = reinterpret_cast<Uint32*>(static_cast<char*>(renderer.pixels->pixels) + static_cast<ptrdiff_t>(pitch) * y);
-					row[x] = color; //0xRGBA
-				}
+				const Uint8 _r = static_cast<Uint8>((color & 0xff000000) >> 24);
+				const Uint8 _g = static_cast<Uint8>((color & 0x00ff0000) >> 16);
+				const Uint8 _b = static_cast<Uint8>((color & 0x0000ff00) >> 8);
+				const Uint8 _a = static_cast<Uint8>(color & 0x000000ff);
+				SDL_SetRenderDrawColor(renderer.renderer, _r, _g, _b, _a);
+				SDL_RenderDrawPoint(renderer.renderer, x, y);
 			}
 		}
-		SDL_UnlockSurface(renderer.pixels);
 	}
 
 	void Update(double delta) override
 	{
 		// move speed, in px/s
 		pos += delta * spd;
-		pos = std::fmod(pos, DEFAULT_SCREEN_WIDTH);
+		pos = std::fmod(pos, OkuLite::renderer->ScreenWidth());
 
 		if (Input::GetKeyPressed(K_RETURN))
 			spd += 2000;
@@ -62,24 +59,25 @@ public:
 		rect.x = 0;
 		rect.y = 0;
 		rect.w = 40;
-		rect.h = DEFAULT_SCREEN_HEIGHT / 3;
+		rect.h = OkuLite::renderer->ScreenHeight() / 3;
 	}
 
 	void Update(double delta) override
 	{
-		double vy = 0;
-		if (Input::GetKeyDown(up_key)) vy = speed;
-		if (Input::GetKeyDown(down_key)) vy = -speed;
-		Move(vy * delta);
+		if (Input::GetKeyDown(up_key))
+			Move((int)(speed * delta));
+		else if (Input::GetKeyDown(down_key))
+			Move((int)(-speed * delta));
 	}
 
 	void Draw(Renderer& renderer) override
 	{
+		// add the position as an offset to the base transform (->local)
 		SDL_Rect rect_transform = rect;
 		rect_transform.x += x;
 		rect_transform.y += y;
-		SDL_FillRect(renderer.pixels, &rect_transform, SDL_MapRGBA(renderer.pixels->format, 255, 255, 255, 255));
-
+		SDL_SetRenderDrawColor(renderer.renderer, 0xff, 0xff, 0xff, 0xff);
+		SDL_RenderFillRect(renderer.renderer, &rect_transform);
 	}
 private:
 	int x, y;
@@ -87,10 +85,10 @@ private:
 	SDL_Rect rect;
 	InputKey up_key, down_key;
 
-	void Move(double vy)
+	void Move(int vy)
 	{
 		auto dy = y - vy;
-		if (dy < 0 || dy > DEFAULT_SCREEN_HEIGHT - rect.h)
+		if (dy < 0 || dy > OkuLite::renderer->ScreenHeight() - rect.h)
 			return;
 		y = dy;
 	}
@@ -99,6 +97,10 @@ private:
 class Ball : public GameObject
 {
 public:
+	Ball(int sx, int sy, int rad = 20, Uint32 col = 0xFFFFFFFF)
+		: x(sx), y(sy), size(rad), color(col)
+	{}
+
 	void Update(double delta) override
 	{
 
@@ -106,12 +108,13 @@ public:
 
 	void Draw(Renderer& renderer) override
 	{
-
+		SDLPrimitive::FillCircle(renderer, x, y, size, color);
 	}
 private:
 	int x, y;
+	int size;
 	double speed = 100;
-	
+	Uint32 color;
 };
 
 class QuitObject : public GameObject
@@ -166,10 +169,13 @@ int main(int argc, char* argv[])
 	auto quitObj = std::make_shared<QuitObject>();
 	OkuLite::goManager->AddGameObject(quitObj);
 
-	auto paddle = std::make_shared<Paddle>(40, 120);
+	auto paddle = std::make_shared<Paddle>(40, 120, K_W, K_S);
 	OkuLite::goManager->AddGameObject(paddle);
-	auto paddle2 = std::make_shared<Paddle>(DEFAULT_SCREEN_WIDTH - 80, 120, K_I, K_K);
+	auto paddle2 = std::make_shared<Paddle>(OkuLite::renderer->ScreenWidth() - 80, 120, K_I, K_K);
 	OkuLite::goManager->AddGameObject(paddle2);
+
+	auto ball = std::make_shared<Ball>(OkuLite::renderer->ScreenWidth() / 2, OkuLite::renderer->ScreenHeight() / 2);
+	OkuLite::goManager->AddGameObject(ball);
 
 	OLog::Info("Active!");
 
