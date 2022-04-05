@@ -3,6 +3,7 @@
 
 #include <array>
 #include <SDL.h>
+#include <SDL_ttf.h>
 
 #include <engine/GameObject.h>
 

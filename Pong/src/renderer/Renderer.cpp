@@ -31,6 +31,11 @@ bool Renderer::Init(const char* const windowName, int screenWidth, int screenHei
 		return false;
 	}
 
+	if (TTF_Init() == -1) {
+		printf("SDL_TTF could not be initialized: %s\n", TTF_GetError());
+		return false;
+	}
+
 	ticks = SDL_GetTicks64();
 
 	goRenderSize = 0;
